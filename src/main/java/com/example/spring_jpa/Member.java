@@ -5,6 +5,8 @@ import lombok.*;
 import javax.persistence.*;
 import java.util.List;
 
+import static com.example.spring_jpa.MemberType.*;
+
 @NoArgsConstructor
 @ToString(of = {"id","name"})
 @Getter@Setter
@@ -17,16 +19,23 @@ public class Member {
 
     private String name;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Team team;
 
     @OneToMany(mappedBy = "member")
     private List<Order> orders;
 
-    public Member(Long id , String name) {
+    private int age;
+
+    @Enumerated(EnumType.STRING)
+    private MemberType type;
+
+    public Member(String name, int age) {
         this.id = id;
         this.name = name;
+        this.type = MEMBER;
+        this.age = age;
     }
 
     public Member(String name) {

@@ -7,10 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.PersistenceUnitUtil;
-import javax.persistence.Query;
+import javax.persistence.*;
 import java.util.List;
 
 @SpringBootTest
@@ -23,7 +20,7 @@ public class MemberTest {
     @BeforeEach
     void beforeTest() {
         for (int i = 0; i < 100; i++) {
-            em.persist(new Member(String.valueOf(i)));
+            em.persist(new Member(String.valueOf(i),i));
         }
     }
 
@@ -86,20 +83,6 @@ public class MemberTest {
         Member member = em.find(Member.class, 1L); // 영속성 컨텍스트에 해당 id 을 가진 멤버가 없으면 DB 조회
     }
 
-
-    @Test
-    @Rollback(value = false)
-    @Transactional
-    void memberTest06() {
-        Member m1 = new Member(1L, "member1");
-        Member m2 = new Member(2L, "member2");
-        em.persist(m1);
-        em.persist(m2);
-
-        m1.setName("new member1");
-        em.find(Member.class, 1L);
-
-    }
 
     @Test
     @Rollback(value = false)
@@ -284,5 +267,47 @@ public class MemberTest {
             System.out.println("member = " + member);
         }
     }
+    
+    @Test
+    public void memberTest18() {
+        String query
+                = "select m.name, 'HELLO', true from Member m" +
+                " where m.type = com.example.spring_jpa.MemberType.MEMBER";
 
+        List resultList = em.createQuery(query)
+                .getResultList();
+
+        
+        for(Object o: resultList) {
+            Object[] result = (Object[]) o;
+            System.out.println("result[0] = " + result[0]);
+            System.out.println("result[1] = " + result[1]);
+        }
+    }
+    
+    @Test
+    public void memberTest19() {
+        String query = 
+                "select case when m.age <= 10 then '학생요금' " +
+                        "when m.age >= 60 then '경로요금' " +
+                        " else '일반 요금' "  +
+              "end " +
+                      "from Member m";
+        
+        List<String> result = em.createQuery(query, String.class).getResultList();
+
+
+        for (Object o : result) {
+            System.out.println("o = " + o);
+        }
+    }
+
+    @Test
+    public void memberTest20() {
+        String firstQuery = "select m.team from Member m";
+        List<Team> resultList = em.createQuery(firstQuery, Team.class).getResultList();
+        for (Team team : resultList) {
+            System.out.println("team = " + team);
+        }
+    }
 }
