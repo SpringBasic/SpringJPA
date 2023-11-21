@@ -1,5 +1,6 @@
 package com.example.spring_jpa;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -9,6 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceUnitUtil;
+import javax.persistence.Query;
+import java.util.List;
 
 @SpringBootTest
 @Transactional
@@ -16,6 +19,13 @@ public class MemberTest {
 
     @PersistenceContext
     EntityManager em;
+
+    @BeforeEach
+    void beforeTest() {
+        for (int i = 0; i < 100; i++) {
+            em.persist(new Member(String.valueOf(i)));
+        }
+    }
 
     @Test
     @DisplayName("회원 기능 테스트 01")
@@ -141,7 +151,7 @@ public class MemberTest {
         em.flush();
         em.clear();
 
-        Member refMember = em.getReference(Member.class,member.getId());
+        Member refMember = em.getReference(Member.class, member.getId());
         System.out.println("refMember.getClass() = " + refMember.getClass()); // 프록시 객체
         Member findMember = em.find(Member.class, member.getId());
         System.out.println("findMember.getClass() = " + findMember.getClass()); // 프록시 객체
@@ -172,12 +182,15 @@ public class MemberTest {
         member.setTeam(team);
         em.persist(member);
 
+        em.flush();
+        em.clear();
+
         Member reference = em.find(Member.class, member.getId());
-        Team refTeam = em.getReference(Team.class,team.getId()); // Access = 필드
+        Team refTeam = em.getReference(Team.class, team.getId()); // Access = 필드
         Long id = refTeam.getId();
         System.out.println("id = " + id);
     }
-    
+
     @Test
     public void memberTest12() {
         Member member = new Member();
@@ -189,10 +202,87 @@ public class MemberTest {
 
         em.flush();
         em.clear();
-        
+
         Member ref = em.find(Member.class, member.getId());
 
         System.out.println("ref.getTeam().getClass() = " + ref.getTeam().getClass());
         System.out.println("ref.getTeam().getName() = " + ref.getTeam().getName());
     }
+
+    @Test
+    @Rollback(value = false)
+    public void memberTest13() {
+        Member member = new Member();
+        member.setName("member1");
+        Team team = new Team("team1");
+        member.setTeam(team);
+        em.persist(member); // Member 만 영속화
+
+        em.flush();
+        em.clear();
+
+        Member findMember = em.find(Member.class, member.getId());
+        em.remove(findMember); // member + team 삭제
+    }
+
+    @Test
+    public void memberTest14() {
+        Member m1 = new Member();
+        m1.setName("m1");
+
+        List<Member> resultList
+                = em.createQuery("select m from Member m where m.name like '%kim'", Member.class).getResultList();
+
+        System.out.println("resultList = " + resultList);
+
+    }
+
+    @Test
+    public void memberTest15() {
+        Member m1 = new Member();
+        m1.setName("m1");
+        Team team = new Team("t1");
+        m1.setTeam(team);
+        em.persist(m1);
+
+
+        em.flush();
+        em.clear();
+
+        Query query = em.createQuery("select m.id, m.name from Member m");
+        List resultList = query.getResultList();
+
+        for (Object o : resultList) {
+            Object[] ob = (Object[]) o;
+            System.out.println("ob[0] = " + ob[0]);
+            System.out.println("ob[1] = " + ob[1]);
+        }
+    }
+
+    @Test
+    public void memberTest16() {
+
+        List<Member> result = em.createQuery("select m from Member m", Member.class)
+                .setFirstResult(0)
+                .setMaxResults(10)
+                .getResultList();
+
+        for (Member member : result) {
+            System.out.println("member = " + member);
+        }
+    }
+
+    @Test
+    public void memberTest17() {
+        String teamName = "teamA";
+        List<Member> resultList = em.createQuery("select m from Member m inner join m.team t " +
+                        "where t.name = :teamName",Member.class)
+                .setParameter("teamName", teamName)
+                .getResultList();
+
+        for (Member member : resultList) {
+            System.out.println("member = " + member);
+        }
+    }
+
 }

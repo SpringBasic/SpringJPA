@@ -3,24 +3,22 @@ package com.example.spring_jpa;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.persistence.*;
-import java.util.List;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 
 @Slf4j
 @Getter
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor(access= AccessLevel.PROTECTED)
 @Entity
-public class Team {
+public class Product {
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long id;
     private String name;
-
-    @OneToMany(mappedBy = "team")
-    private List<Member> members;
-
-    @Builder
-    public Team(String name) {
-        this.name = name;
-    }
+    private int price;
+    private int stockAmount;
 }
