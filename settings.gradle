@@ -1,4 +1,5 @@
 rootProject.name = 'spring_jpa'
 include 'application01'
 include 'springjpa_application01'
+include 'application01'
 

@@ -9,6 +9,7 @@ import java.util.List;
 @Slf4j
 @Getter
 @NoArgsConstructor(access= AccessLevel.PROTECTED)
+@ToString(of = {"name"})
 @Entity
 public class Team {
     @Id

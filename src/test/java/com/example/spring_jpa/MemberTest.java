@@ -17,12 +17,12 @@ public class MemberTest {
     @PersistenceContext
     EntityManager em;
 
-    @BeforeEach
-    void beforeTest() {
-        for (int i = 0; i < 100; i++) {
-            em.persist(new Member(String.valueOf(i),i));
-        }
-    }
+//    @BeforeEach
+//    void beforeTest() {
+//        for (int i = 0; i < 100; i++) {
+//            em.persist(new Member(String.valueOf(i),i));
+//        }
+//    }
 
     @Test
     @DisplayName("회원 기능 테스트 01")
@@ -308,6 +308,157 @@ public class MemberTest {
         List<Team> resultList = em.createQuery(firstQuery, Team.class).getResultList();
         for (Team team : resultList) {
             System.out.println("team = " + team);
+        }
+    }
+
+    @Test
+    public void memberTest21() {
+        Member member01 = new Member("m1",27);
+        Member member02 = new Member("m2",25);
+        Member member03 = new Member("m3",20);
+        Member member04 = new Member("m4",222);
+        Team team01 = new Team("team1");
+        Team team02 = new Team("team2");
+        Team team03 = new Team("team3");
+
+        em.persist(team01);
+        em.persist(team02);
+        em.persist(team03);
+        member01.setTeam(team01); member02.setTeam(team01);
+        member03.setTeam(team02); member04.setTeam(team03);
+        em.persist(member01); em.persist(member02); em.persist(member03); em.persist(member04);
+
+        em.flush();em.clear();
+
+        List resultList = em.createQuery("select m, t from Team t left join t.members m")
+                .getResultList();
+        System.out.println("resultList.size() = " + resultList.size());
+
+        for (Object o : resultList) {
+            System.out.println("o = " + o);
+        }
+    }
+
+    @Test
+    public void memberTest22() {
+        Member member1 = new Member("m1", 10);
+        Member member2 = new Member("m2", 20);
+        Member member3 = new Member("m3", 30);
+
+        Team team1 = new Team("team1");
+        Team team2 = new Team("team2");
+
+
+        em.persist(team1);
+        em.persist(team2);
+
+        member1.setTeam(team1);
+        member2.setTeam(team2);
+        member3.setTeam(team2);
+
+
+        em.persist(member1);
+        em.persist(member2);
+        em.persist(member3);
+
+        em.flush();
+        em.clear();
+
+        List<Member> list = em.createQuery("select m from Member m", Member.class)
+                .getResultList();
+
+        for (Member member : list) {
+            System.out.println("member.getName() +\",\" + member.getTeam().getName() " +
+                    "= " + member.getName() + "," + member.getTeam().getName());
+
+            // 회원 1, 팀A(SQL)
+            // 회원 2, 팀B(SQL)
+            // 회원 3, 팀B(1차캐시)
+
+        }
+    }
+
+    @Test
+    public void memberTest23() {
+        Member member1 = new Member("m1", 10);
+        Member member2 = new Member("m2", 20);
+        Member member3 = new Member("m3", 30);
+
+        Team team1 = new Team("team1");
+        Team team2 = new Team("team2");
+
+
+        em.persist(team1);
+        em.persist(team2);
+
+        member1.setTeam(team1);
+        member2.setTeam(team2);
+        member3.setTeam(team2);
+
+
+        em.persist(member1);
+        em.persist(member2);
+        em.persist(member3);
+
+        em.flush();
+        em.clear();
+
+        String query = "select m from Member m join fetch m.team"; // 페치 조인
+        List<Member> resultList = em.createQuery(query, Member.class)
+                .getResultList();
+
+        for (Member member : resultList) {
+            System.out.println("member = " + member);
+        }
+    }
+
+    @Test
+    public void memberTest24() {
+
+        Member member1 = new Member("m1", 10);
+        Member member2 = new Member("m2", 20);
+        Member member3 = new Member("m3", 30);
+
+        Team team1 = new Team("team1");
+        Team team2 = new Team("team2");
+
+
+        em.persist(team1);
+        em.persist(team2);
+
+        member1.setTeam(team1);
+        member2.setTeam(team1);
+        member3.setTeam(team2);
+
+
+        em.persist(member1);
+        em.persist(member2);
+        em.persist(member3);
+
+        em.flush();
+        em.clear();
+
+        String query = "select t from Team t join fetch t.members"; // 컬렉션 페치 조인
+
+        List<Team> resultList = em.createQuery(query, Team.class).getResultList();
+        System.out.println("resultList.size() = " + resultList.size());
+        for (Team team : resultList) {
+            System.out.println("team = " + team.getName() + "|members=" + team.getMembers().size());
+            for(Member member : team.getMembers()) {
+                System.out.println("member.getName() = " + member.getName());
+            }
+        }
+
+        em.flush();
+        em.clear();
+
+        String query02 = "select distinct t from Team t join fetch t.members"; // distinct 컬렉션 페치 조인
+        List<Team> resultList1 = em.createQuery(query02, Team.class).getResultList();
+        for (Team team : resultList1) {
+            System.out.println("team = " + team.getName() + "|members=" + team.getMembers().size());
+            for(Member member : team.getMembers()) {
+                System.out.println("member.getName() = " + member.getName());
+            }
         }
     }
 }

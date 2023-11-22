@@ -20,7 +20,7 @@ public class Member {
     private String name;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
+    @JoinColumn(name = "team_id")
     private Team team;
 
     @OneToMany(mappedBy = "member")
